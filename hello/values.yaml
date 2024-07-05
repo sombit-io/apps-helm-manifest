@@ -1,0 +1,11 @@
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+canary:
+  enabled: true
+  version: canary
+  weight: 10
