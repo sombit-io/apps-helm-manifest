@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: hello
+spec:
+  host: hello.world
+  subsets:
+    - name: hello-v3
+      labels:
+        app: hello-v3
+    - name: hello-v2
+      labels:
+        app: hello-v2
+
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: hello
+spec:
+  hosts:
+    - "hello.world"
+  http:
+    - route:
+        - destination:
+            host: hello.world
+            subset: hello-v3
+          weight: 1
+        - destination:
+            host: hello.world
+            subset: hello-v2
+          weight: 99
