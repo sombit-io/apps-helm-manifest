@@ -1,32 +1,36 @@
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: hello
+  name: {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
 spec:
-  host: hello.world
+  host: {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
   subsets:
-    - name: hello-v3
+    - name: {{.Values.app.name}}-{{.Values.app.version}}
       labels:
-        app: hello-v3
-    - name: hello-v2
+        app: {{.Values.app.name}}-{{.Values.app.version}}
+    {{- if .Values.canary.enabled }}
+    - name: {{.Values.app.name}}-{{ .Values.canary.version }}
       labels:
-        app: hello-v2
+        app: {{.Values.app.name}}-{{ .Values.canary.version }}
+    {{- end }}
 
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: hello
+  name: {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
 spec:
   hosts:
-    - "hello.world"
+    - {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
   http:
     - route:
         - destination:
-            host: hello.world
-            subset: hello-v3
-          weight: {{ sub 100 .Values.canary.weight }}
+            host: {{ .Values.app.name }}.{{ .Values.app.namespace }}.{{ .Values.app.domain }}
+            subset: {{ .Values.app.name }}-{{ .Values.app.version }}
+          weight: {{ if .Values.canary.enabled }}{{ sub 100 .Values.canary.weight }}{{- else }}100{{- end }}
+        {{- if .Values.canary.enabled }}
         - destination:
-            host: hello.world
-            subset: hello-v2
+            host: {{ .Values.app.name }}.{{ .Values.app.namespace }}.{{ .Values.app.domain }}
+            subset: {{ .Values.app.name }}-{{ .Values.canary.version }}
           weight: {{ .Values.canary.weight }}
+        {{- end }}

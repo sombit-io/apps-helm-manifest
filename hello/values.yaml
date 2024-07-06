@@ -1,11 +1,10 @@
-
-replicaCount: 1
-
-service:
-  type: ClusterIP
-  port: 80
+app:
+  namespace: sample
+  name: hello
+  version: 1-abcdef
+  domain: dev.apps.io
 
 canary:
-  enabled: true
-  version: canary
-  weight: 10
+  enabled: false
+  version: 2-bcdef
+  weight: 0

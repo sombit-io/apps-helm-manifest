@@ -1,66 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment-v3
+  name: {{ .Values.app.name }}-{{ .Values.app.version }}
 spec:
   selector:
     matchLabels:
-      app: hello-v3
+      app: {{ .Values.app.name }}-{{ .Values.app.version }}
   replicas: 2
   template:
     metadata:
       labels:
-        app: hello-v3
+        app: {{ .Values.app.name }}-{{ .Values.app.version }}
     spec:
       containers:
         - name: nginx
           image: nginx:1.14.2
           ports:
             - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello-v3
-  labels:
-    app: hello-v3
-spec:
-  ports:
-    - port: 80
-      protocol: TCP
-  selector:
-    app: nginx
 
+{{- if .Values.canary.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment-v2
+  name: {{ .Values.app.name }}-{{ .Values.canary.version }}
 spec:
   selector:
     matchLabels:
-      app: hello-v2
+      app: {{ .Values.app.name }}-{{ .Values.canary.version }}
   replicas: 2
   template:
     metadata:
       labels:
-        app: hello-v2
+        app: {{ .Values.app.name }}-{{ .Values.canary.version }}
     spec:
       containers:
         - name: nginx
           image: nginx:1.14.2
           ports:
             - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello-v2
-  labels:
-    app: hello-v2
-spec:
-  ports:
-    - port: 80
-      protocol: TCP
-  selector:
-    app: nginx
+{{- end}}
