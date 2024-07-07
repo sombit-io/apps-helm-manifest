@@ -22,6 +22,8 @@ metadata:
 spec:
   hosts:
     - {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
+  gateways:
+    - http-gateway
   http:
     - route:
         - destination:
