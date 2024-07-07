@@ -1,10 +1,10 @@
 app:
-  namespace: sample
+  namespace: default
   name: hello
-  version: 1-abcdef
-  domain: dev.apps.io
+  domain: svc.cluster.local
+  version: 1
 
 canary:
   enabled: false
-  version: 2-bcdef
+  version: 2
   weight: 0

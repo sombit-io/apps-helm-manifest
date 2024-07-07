@@ -3,15 +3,17 @@ kind: DestinationRule
 metadata:
   name: {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
 spec:
-  host: {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
+  host: {{.Values.app.name}}
   subsets:
     - name: {{.Values.app.name}}-{{.Values.app.version}}
       labels:
-        app: {{.Values.app.name}}-{{.Values.app.version}}
+        app: {{ .Values.app.name }}
+        version: {{.Values.app.name}}-{{ .Values.app.version }}
     {{- if .Values.canary.enabled }}
     - name: {{.Values.app.name}}-{{ .Values.canary.version }}
       labels:
-        app: {{.Values.app.name}}-{{ .Values.canary.version }}
+        app: {{.Values.app.name}}
+        version: {{.Values.app.name}}-{{ .Values.canary.version }}
     {{- end }}
 
 ---
@@ -23,16 +25,17 @@ spec:
   hosts:
     - {{.Values.app.name}}.{{.Values.app.namespace}}.{{.Values.app.domain}}
   gateways:
+    - mesh
     - http-gateway
   http:
     - route:
         - destination:
-            host: {{ .Values.app.name }}.{{ .Values.app.namespace }}.{{ .Values.app.domain }}
+            host: {{ .Values.app.name }}
             subset: {{ .Values.app.name }}-{{ .Values.app.version }}
           weight: {{ if .Values.canary.enabled }}{{ sub 100 .Values.canary.weight }}{{- else }}100{{- end }}
         {{- if .Values.canary.enabled }}
         - destination:
-            host: {{ .Values.app.name }}.{{ .Values.app.namespace }}.{{ .Values.app.domain }}
+            host: {{ .Values.app.name }}
             subset: {{ .Values.app.name }}-{{ .Values.canary.version }}
           weight: {{ .Values.canary.weight }}
         {{- end }}

@@ -3,20 +3,41 @@ kind: Deployment
 metadata:
   name: {{ .Values.app.name }}-{{ .Values.app.version }}
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.app.name }}-{{ .Values.app.version }}
-  replicas: 2
+      app: {{ .Values.app.name }}
+      version: {{ .Values.app.name }}-{{ .Values.app.version }}
   template:
     metadata:
       labels:
-        app: {{ .Values.app.name }}-{{ .Values.app.version }}
+        app: {{ .Values.app.name }}
+        version: {{ .Values.app.name }}-{{ .Values.app.version }}
     spec:
       containers:
         - name: nginx
           image: nginx:1.14.2
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: nginx-html
+              mountPath: /usr/share/nginx/html
+      volumes:
+      - name: nginx-html
+        configMap:
+          name: {{ .Values.app.name }}-nginx-config-{{ .Values.app.version }}
+          items:
+            - key: index.html
+              path: index.html
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-nginx-config-{{ .Values.app.version }}
+data:
+  index.html: |-
+    <h1>Welcome to {{ .Values.app.name }}-{{ .Values.app.version }}!</h1>
+
 
 {{- if .Values.canary.enabled }}
 ---
@@ -25,18 +46,55 @@ kind: Deployment
 metadata:
   name: {{ .Values.app.name }}-{{ .Values.canary.version }}
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.app.name }}-{{ .Values.canary.version }}
-  replicas: 2
+      app: {{ .Values.app.name }}
+      version: {{ .Values.app.name }}-{{ .Values.canary.version }}
   template:
     metadata:
       labels:
-        app: {{ .Values.app.name }}-{{ .Values.canary.version }}
+        app: {{ .Values.app.name }}
+        version: {{ .Values.app.name }}-{{ .Values.canary.version }}
     spec:
       containers:
         - name: nginx
           image: nginx:1.14.2
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: nginx-html
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: nginx-html
+          configMap:
+            name: {{ .Values.app.name }}-nginx-config-{{ .Values.canary.version }}
+            items:
+              - key: index.html
+                path: index.html
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-nginx-config-{{ .Values.canary.version }}
+data:
+  index.html: |-
+    <h1>Welcome to {{ .Values.app.name }}-{{ .Values.canary.version }}!</h1>
+
+
 {{- end}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}
+spec:
+  selector:
+    app: {{ .Values.app.name }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
